@@ -208,6 +208,10 @@ function App() {
     }
   };
 
+  const dismissAlert = (index) => {
+    setAlerts(prev => prev.filter((_, i) => i !== index));
+  };
+
   const simulateIncident = async () => {
     try {
       const response = await axios.post(`${BACKEND_URL}/api/simulate-incident`);
