@@ -282,9 +282,11 @@ async def analyze_frame(file: UploadFile = File(...)):
                 
                 # Send alerts
                 await manager.notify_closest_booth(incident_data["location"], incident_data)
+                
+                incident_data_clean = manager._clean_dict_for_json(incident_data)
                 await manager.broadcast(json.dumps({
                     "type": "NEW_INCIDENT",
-                    "incident": incident_data
+                    "incident": incident_data_clean
                 }))
         
         return {
