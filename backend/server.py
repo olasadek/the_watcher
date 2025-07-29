@@ -220,7 +220,9 @@ async def create_security_booth(booth: SecurityBooth):
 @app.get("/api/incidents")
 async def get_incidents():
     incidents = await db.incidents.find().sort("timestamp", -1).to_list(length=50)
-    return {"incidents": incidents}
+    # Clean ObjectId fields for JSON serialization
+    cleaned_incidents = [manager._clean_dict_for_json(incident) for incident in incidents]
+    return {"incidents": cleaned_incidents}
 
 @app.post("/api/incidents")
 async def create_incident(incident: Incident):
