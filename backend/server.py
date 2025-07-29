@@ -361,12 +361,14 @@ async def get_dashboard_stats():
     total_booths = await db.security_booths.count_documents({"status": "active"})
     
     recent_incidents = await db.incidents.find().sort("timestamp", -1).limit(5).to_list(length=5)
+    # Clean ObjectId fields for JSON serialization
+    cleaned_recent_incidents = [manager._clean_dict_for_json(incident) for incident in recent_incidents]
     
     return {
         "total_cameras": total_cameras,
         "active_incidents": active_incidents,
         "total_booths": total_booths,
-        "recent_incidents": recent_incidents
+        "recent_incidents": cleaned_recent_incidents
     }
 
 if __name__ == "__main__":
