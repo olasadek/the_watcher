@@ -230,9 +230,10 @@ async def create_incident(incident: Incident):
     await manager.notify_closest_booth(incident.location, incident_dict)
     
     # Broadcast to all connected clients
+    alert_data_clean = manager._clean_dict_for_json(incident_dict)
     await manager.broadcast(json.dumps({
         "type": "NEW_INCIDENT",
-        "incident": incident_dict
+        "incident": alert_data_clean
     }))
     
     return {"message": "Incident created and alerts sent", "incident_id": incident.incident_id}
