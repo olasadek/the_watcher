@@ -208,8 +208,16 @@ function App() {
     }
   };
 
-  const dismissAlert = (index) => {
-    setAlerts(prev => prev.filter((_, i) => i !== index));
+  const simulateIncident = async () => {
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/simulate-incident`);
+      console.log('Incident simulated:', response.data);
+      // Refresh data
+      loadIncidents();
+      loadDashboardStats();
+    } catch (error) {
+      console.error('Error simulating incident:', error);
+    }
   };
 
   const getSeverityColor = (severity) => {
