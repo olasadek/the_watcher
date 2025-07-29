@@ -345,7 +345,7 @@ async def simulate_incident():
     
     return {
         "message": "Incident simulated successfully",
-        "incident": incident_data_json
+        "incident": alert_data_clean
     }
 async def get_dashboard_stats():
     total_cameras = await db.cameras.count_documents({})
