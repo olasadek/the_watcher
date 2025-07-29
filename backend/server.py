@@ -275,7 +275,45 @@ async def analyze_frame(file: UploadFile = File(...)):
         logger.error(f"Frame analysis error: {str(e)}")
         return {"error": f"Analysis failed: {str(e)}"}
 
-@app.get("/api/dashboard-stats")
+@app.post("/api/simulate-incident")
+async def simulate_incident():
+    """
+    Simulate an incident for testing purposes
+    """
+    import random
+    
+    incident_types = ["person_fallen", "fight", "smoking", "suspicious_activity"]
+    incident_type = random.choice(incident_types)
+    
+    incident_id = str(uuid.uuid4())
+    incident_data = {
+        "incident_id": incident_id,
+        "camera_id": random.choice(["camera_001", "camera_002"]),
+        "incident_type": incident_type,
+        "severity": "high" if incident_type in ["person_fallen", "fight"] else "medium",
+        "location": {
+            "lat": 40.7128 + random.uniform(-0.005, 0.005), 
+            "lng": -74.0060 + random.uniform(-0.005, 0.005)
+        },
+        "timestamp": datetime.utcnow(),
+        "description": f"Simulated {incident_type.replace('_', ' ')} incident for testing",
+        "confidence": random.uniform(0.7, 0.95)
+    }
+    
+    # Store incident
+    await db.incidents.insert_one(incident_data)
+    
+    # Send alerts
+    await manager.notify_closest_booth(incident_data["location"], incident_data)
+    await manager.broadcast(json.dumps({
+        "type": "NEW_INCIDENT",
+        "incident": incident_data
+    }))
+    
+    return {
+        "message": "Incident simulated successfully",
+        "incident": incident_data
+    }
 async def get_dashboard_stats():
     total_cameras = await db.cameras.count_documents({})
     active_incidents = await db.incidents.count_documents({"status": "active"})
