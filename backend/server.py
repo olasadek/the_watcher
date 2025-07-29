@@ -219,51 +219,61 @@ async def create_incident(incident: Incident):
 async def analyze_frame(file: UploadFile = File(...)):
     """
     Analyze uploaded frame for incidents using free computer vision
-    This is a placeholder - will implement actual CV detection
     """
-    # For now, simulate incident detection
-    import random
-    
-    incident_types = ["normal", "person_fallen", "fight", "smoking", "suspicious_activity"]
-    detected_type = random.choice(incident_types)
-    confidence = random.uniform(0.3, 0.95)
-    
-    # If high confidence incident detected
-    if detected_type != "normal" and confidence > 0.7:
-        incident_id = str(uuid.uuid4())
-        incident_data = {
-            "incident_id": incident_id,
-            "camera_id": "camera_001",  # Default for testing
-            "incident_type": detected_type,
-            "severity": "high" if detected_type in ["person_fallen", "fight"] else "medium",
-            "location": {"lat": 40.7128, "lng": -74.0060},  # Default NYC coords
-            "timestamp": datetime.utcnow(),
-            "description": f"Detected {detected_type.replace('_', ' ')} with {confidence:.2f} confidence",
-            "confidence": confidence
-        }
+    try:
+        # Import vision analyzer
+        from vision_analyzer import analyze_image_data
         
-        # Store incident
-        await db.incidents.insert_one(incident_data)
+        # Read image data
+        image_data = await file.read()
         
-        # Send alerts
-        await manager.notify_closest_booth(incident_data["location"], incident_data)
-        await manager.broadcast(json.dumps({
-            "type": "NEW_INCIDENT",
-            "incident": incident_data
-        }))
+        # Analyze with computer vision
+        analysis_results = analyze_image_data(image_data)
+        
+        if "error" in analysis_results:
+            return {"error": analysis_results["error"]}
+        
+        # Process detected incidents
+        incidents_detected = analysis_results.get("incidents_detected", [])
+        
+        created_incidents = []
+        for incident in incidents_detected:
+            # Only process high-confidence incidents
+            if incident.get("confidence", 0) > 0.6:
+                incident_id = str(uuid.uuid4())
+                incident_data = {
+                    "incident_id": incident_id,
+                    "camera_id": "camera_webcam",  # Webcam feed
+                    "incident_type": incident["type"],
+                    "severity": incident.get("severity", "medium"),
+                    "location": {"lat": 40.7128, "lng": -74.0060},  # Default location
+                    "timestamp": datetime.utcnow(),
+                    "description": f"AI detected {incident['type'].replace('_', ' ')} with {incident['confidence']:.2f} confidence",
+                    "confidence": incident["confidence"],
+                    "analysis_details": analysis_results.get("analysis_details", {})
+                }
+                
+                # Store incident
+                await db.incidents.insert_one(incident_data)
+                created_incidents.append(incident_data)
+                
+                # Send alerts
+                await manager.notify_closest_booth(incident_data["location"], incident_data)
+                await manager.broadcast(json.dumps({
+                    "type": "NEW_INCIDENT",
+                    "incident": incident_data
+                }))
         
         return {
-            "incident_detected": True,
-            "incident_type": detected_type,
-            "confidence": confidence,
-            "incident_id": incident_id
+            "incidents_detected": len(created_incidents) > 0,
+            "incidents_created": len(created_incidents),
+            "analysis_results": analysis_results,
+            "created_incidents": created_incidents
         }
-    
-    return {
-        "incident_detected": False,
-        "detected_type": detected_type,
-        "confidence": confidence
-    }
+        
+    except Exception as e:
+        logger.error(f"Frame analysis error: {str(e)}")
+        return {"error": f"Analysis failed: {str(e)}"}
 
 @app.get("/api/dashboard-stats")
 async def get_dashboard_stats():
