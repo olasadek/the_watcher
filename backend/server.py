@@ -62,14 +62,36 @@ class ConnectionManager:
         closest_booth = await self.find_closest_booth(incident_location)
         if closest_booth and closest_booth['booth_id'] in self.booth_connections:
             websocket = self.booth_connections[closest_booth['booth_id']]
+            
+            # Convert ObjectId to string if present
+            alert_data_clean = self._clean_dict_for_json(alert_data)
+            
             alert_message = {
                 "type": "PRIORITY_ALERT",
-                "incident": alert_data,
+                "incident": alert_data_clean,
                 "distance": closest_booth['distance'],
                 "booth_info": closest_booth,
                 "timestamp": datetime.utcnow().isoformat()
             }
             await websocket.send_text(json.dumps(alert_message))
+
+    def _clean_dict_for_json(self, data):
+        """Clean dictionary for JSON serialization"""
+        if isinstance(data, dict):
+            cleaned = {}
+            for key, value in data.items():
+                if key == '_id':  # Skip MongoDB ObjectId
+                    continue
+                elif isinstance(value, datetime):
+                    cleaned[key] = value.isoformat()
+                elif isinstance(value, dict):
+                    cleaned[key] = self._clean_dict_for_json(value)
+                elif isinstance(value, list):
+                    cleaned[key] = [self._clean_dict_for_json(item) if isinstance(item, dict) else item for item in value]
+                else:
+                    cleaned[key] = value
+            return cleaned
+        return data
 
     async def find_closest_booth(self, incident_location: Dict):
         booths = await db.security_booths.find({"status": "active"}).to_list(length=None)
