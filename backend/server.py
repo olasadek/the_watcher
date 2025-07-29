@@ -206,7 +206,9 @@ async def create_camera(camera: Camera):
 @app.get("/api/security-booths")
 async def get_security_booths():
     booths = await db.security_booths.find().to_list(length=None)
-    return {"booths": booths}
+    # Clean ObjectId fields for JSON serialization
+    cleaned_booths = [manager._clean_dict_for_json(booth) for booth in booths]
+    return {"booths": cleaned_booths}
 
 @app.post("/api/security-booths")
 async def create_security_booth(booth: SecurityBooth):
