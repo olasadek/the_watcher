@@ -192,7 +192,9 @@ async def health_check():
 @app.get("/api/cameras")
 async def get_cameras():
     cameras = await db.cameras.find().to_list(length=None)
-    return {"cameras": cameras}
+    # Clean ObjectId fields for JSON serialization
+    cleaned_cameras = [manager._clean_dict_for_json(camera) for camera in cameras]
+    return {"cameras": cleaned_cameras}
 
 @app.post("/api/cameras")
 async def create_camera(camera: Camera):
