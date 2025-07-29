@@ -347,6 +347,8 @@ async def simulate_incident():
         "message": "Incident simulated successfully",
         "incident": alert_data_clean
     }
+
+@app.get("/api/dashboard-stats")
 async def get_dashboard_stats():
     total_cameras = await db.cameras.count_documents({})
     active_incidents = await db.incidents.count_documents({"status": "active"})
