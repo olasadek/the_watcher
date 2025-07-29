@@ -336,9 +336,11 @@ async def simulate_incident():
     
     # Send alerts
     await manager.notify_closest_booth(incident_data["location"], incident_data_json)
+    
+    alert_data_clean = manager._clean_dict_for_json(incident_data_json)
     await manager.broadcast(json.dumps({
         "type": "NEW_INCIDENT",
-        "incident": incident_data_json
+        "incident": alert_data_clean
     }))
     
     return {
