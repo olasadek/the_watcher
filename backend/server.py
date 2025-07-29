@@ -286,6 +286,7 @@ async def simulate_incident():
     incident_type = random.choice(incident_types)
     
     incident_id = str(uuid.uuid4())
+    current_time = datetime.utcnow()
     incident_data = {
         "incident_id": incident_id,
         "camera_id": random.choice(["camera_001", "camera_002"]),
@@ -295,24 +296,29 @@ async def simulate_incident():
             "lat": 40.7128 + random.uniform(-0.005, 0.005), 
             "lng": -74.0060 + random.uniform(-0.005, 0.005)
         },
-        "timestamp": datetime.utcnow(),
+        "timestamp": current_time,
         "description": f"Simulated {incident_type.replace('_', ' ')} incident for testing",
-        "confidence": random.uniform(0.7, 0.95)
+        "confidence": random.uniform(0.7, 0.95),
+        "status": "active"
     }
     
     # Store incident
     await db.incidents.insert_one(incident_data)
     
+    # Convert datetime to string for JSON serialization
+    incident_data_json = incident_data.copy()
+    incident_data_json["timestamp"] = current_time.isoformat()
+    
     # Send alerts
-    await manager.notify_closest_booth(incident_data["location"], incident_data)
+    await manager.notify_closest_booth(incident_data["location"], incident_data_json)
     await manager.broadcast(json.dumps({
         "type": "NEW_INCIDENT",
-        "incident": incident_data
+        "incident": incident_data_json
     }))
     
     return {
         "message": "Incident simulated successfully",
-        "incident": incident_data
+        "incident": incident_data_json
     }
 async def get_dashboard_stats():
     total_cameras = await db.cameras.count_documents({})
