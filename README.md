@@ -2,6 +2,7 @@
 
 ## 🎯 Overview
 "The Watcher" is a comprehensive AI-powered university monitoring system designed to detect and alert security personnel about various campus incidents in real-time.
+
 <img width="713" height="430" alt="image" src="https://github.com/user-attachments/assets/49ce5dc3-39db-4da9-96bb-082c68117f76" />
 
 ## ✨ Key Features
