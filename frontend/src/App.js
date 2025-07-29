@@ -347,6 +347,13 @@ function App() {
                     <Camera className="h-4 w-4" />
                     <span>{isAnalyzing ? 'Analyzing...' : 'Analyze Frame'}</span>
                   </button>
+                  <button
+                    onClick={simulateIncident}
+                    className="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded flex items-center space-x-2"
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>Simulate Incident</span>
+                  </button>
                 </div>
               </div>
               
