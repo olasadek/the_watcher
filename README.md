@@ -5,6 +5,8 @@
 
 <img width="713" height="430" alt="image" src="https://github.com/user-attachments/assets/49ce5dc3-39db-4da9-96bb-082c68117f76" />
 
+you can have a 30 minutes session trial at : https://campus-monitor-2.preview.emergentagent.com/
+
 ## ✨ Key Features
 
 ### 🔍 Incident Detection
