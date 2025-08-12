@@ -6,7 +6,7 @@
 <img width="713" height="430" alt="the-watcher" src="https://github.com/user-attachments/assets/d5499c17-0b09-4f89-959f-28456051820d" />
 
 
-you can have a 30 minutes session trial at : https://campus-monitor-2.preview.emergentagent.com/
+
 
 ## ✨ Key Features
 
