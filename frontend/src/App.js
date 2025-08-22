@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Webcam from 'react-webcam';
+import CrowdDashboard from './CrowdDashboard';
+import InteractiveMap from './InteractiveMap';
+import RealMap from './RealMap';
+import UniversityConfig from './UniversityConfig';
 import { 
   Camera, 
   Shield, 
@@ -10,11 +14,15 @@ import {
   Volume2,
   Play,
   Pause,
-  Settings
+  Settings,
+  BarChart3,
+  Navigation,
+  Globe,
+  School
 } from 'lucide-react';
 import './App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 function App() {
   const [cameras, setCameras] = useState([]);
@@ -25,6 +33,8 @@ function App() {
   const [selectedCamera, setSelectedCamera] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [websocket, setWebsocket] = useState(null);
+  const [activeTab, setActiveTab] = useState('monitoring');
+  const [universityConfig, setUniversityConfig] = useState(null); // New state for tab navigation
   
   const webcamRef = useRef(null);
   const audioRef = useRef(null);
@@ -65,7 +75,17 @@ function App() {
     loadIncidents();
     loadSecurityBooths();
     loadDashboardStats();
+    loadUniversityConfig();
   }, []);
+
+  const loadUniversityConfig = async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/university-config`);
+      setUniversityConfig(response.data);
+    } catch (error) {
+      console.error('Error loading university config:', error);
+    }
+  };
 
   const loadCameras = async () => {
     try {
@@ -252,8 +272,16 @@ function App() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Shield className="h-8 w-8 text-blue-400 mr-3" />
-              <h1 className="text-3xl font-bold text-white">The Watcher</h1>
-              <span className="ml-2 text-sm text-gray-400">University Monitoring System</span>
+              <div>
+                <h1 className="text-3xl font-bold text-white">
+                  {universityConfig?.university_name || 'University Security System'}
+                </h1>
+                {universityConfig?.location && (
+                  <p className="text-sm text-gray-300">
+                    {universityConfig.location.city}, {universityConfig.location.country}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-green-400">
@@ -290,8 +318,84 @@ function App() {
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Dashboard Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Navigation Tabs */}
+        <div className="mb-8">
+          <div className="border-b border-gray-700">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('monitoring')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'monitoring'
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Security Monitoring
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('crowd')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'crowd'
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Crowd Analysis
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('map')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'map'
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Navigation className="w-4 h-4" />
+                  Campus Map
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('realmap')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'realmap'
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4" />
+                  Real Map (GPS)
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('config')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'config'
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <School className="w-4 h-4" />
+                  University Config
+                </div>
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Render Content Based on Active Tab */}
+        {activeTab === 'monitoring' && (
+          <>
+            {/* Dashboard Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-gray-800 p-6 rounded-lg">
             <div className="flex items-center">
               <Camera className="h-8 w-8 text-blue-400" />
@@ -463,6 +567,28 @@ function App() {
             </div>
           </div>
         </div>
+        </>
+        )}
+
+        {/* Crowd Analysis Tab */}
+        {activeTab === 'crowd' && (
+          <CrowdDashboard />
+        )}
+
+        {/* Interactive Map Tab */}
+        {activeTab === 'map' && (
+          <InteractiveMap />
+        )}
+
+        {/* Real GPS Map Tab */}
+        {activeTab === 'realmap' && (
+          <RealMap />
+        )}
+
+        {/* University Configuration Tab */}
+        {activeTab === 'config' && (
+          <UniversityConfig />
+        )}
       </div>
     </div>
   );

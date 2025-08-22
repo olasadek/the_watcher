@@ -43,6 +43,17 @@ class VisionAnalyzer:
         self.person_confidence_threshold = 0.5
         self.fall_aspect_ratio_threshold = 1.5
         
+        # Crowd analysis parameters
+        self.crowd_density_threshold = 5  # persons per unit area
+        self.gathering_size_threshold = 8  # minimum persons for unusual gathering
+        self.gathering_duration_threshold = 30  # seconds
+        self.max_normal_density = 10  # maximum normal crowd density
+        
+        # Crowd tracking
+        self.crowd_history = []
+        self.gathering_start_time = None
+        self.last_crowd_count = 0
+        
     def analyze_frame(self, frame: np.ndarray) -> Dict:
         """
         Analyze a single frame for various incidents
@@ -128,6 +139,29 @@ class VisionAnalyzer:
                     "type": "smoking",
                     "confidence": 0.6,
                     "severity": "low"
+                })
+            
+            # 7. Crowd Analysis
+            crowd_analysis = self._analyze_crowd_density(persons, frame_resized.shape[:2])
+            results["analysis_details"]["crowd"] = crowd_analysis
+            
+            # Check for crowd-related incidents
+            if crowd_analysis["density_alert"]:
+                results["incidents_detected"].append({
+                    "type": "high_crowd_density",
+                    "confidence": 0.9,
+                    "crowd_count": len(persons),
+                    "density": crowd_analysis["density"],
+                    "severity": "medium"
+                })
+            
+            if crowd_analysis["unusual_gathering"]:
+                results["incidents_detected"].append({
+                    "type": "unusual_gathering",
+                    "confidence": 0.8,
+                    "crowd_count": len(persons),
+                    "duration": crowd_analysis["gathering_duration"],
+                    "severity": "medium"
                 })
             
             # Store current frame for next iteration
@@ -285,6 +319,183 @@ class VisionAnalyzer:
             logger.error(f"Annotation error: {str(e)}")
         
         return annotated
+    
+    def _analyze_crowd_density(self, persons: List[Tuple], frame_shape: Tuple) -> Dict:
+        """
+        Analyze crowd density and detect unusual gatherings
+        
+        Args:
+            persons: List of detected person bounding boxes
+            frame_shape: (height, width) of the frame
+            
+        Returns:
+            Dict containing crowd analysis results
+        """
+        try:
+            current_time = datetime.utcnow()
+            person_count = len(persons)
+            
+            # Calculate frame area (in arbitrary units)
+            frame_area = frame_shape[0] * frame_shape[1] / 10000  # normalize
+            
+            # Calculate crowd density (persons per unit area)
+            density = person_count / frame_area if frame_area > 0 else 0
+            
+            # Update crowd history
+            self.crowd_history.append({
+                "timestamp": current_time,
+                "count": person_count,
+                "density": density
+            })
+            
+            # Keep only recent history (last 60 seconds)
+            cutoff_time = current_time.timestamp() - 60
+            self.crowd_history = [
+                record for record in self.crowd_history 
+                if record["timestamp"].timestamp() > cutoff_time
+            ]
+            
+            # Analyze gathering duration
+            gathering_duration = 0
+            unusual_gathering = False
+            
+            if person_count >= self.gathering_size_threshold:
+                if self.gathering_start_time is None:
+                    self.gathering_start_time = current_time
+                else:
+                    gathering_duration = (current_time - self.gathering_start_time).total_seconds()
+                    if gathering_duration > self.gathering_duration_threshold:
+                        unusual_gathering = True
+            else:
+                self.gathering_start_time = None
+            
+            # Check for density alerts
+            density_alert = density > self.max_normal_density
+            
+            # Calculate average density over time
+            avg_density = 0
+            if self.crowd_history:
+                avg_density = sum(record["density"] for record in self.crowd_history) / len(self.crowd_history)
+            
+            # Detect crowd movement patterns
+            crowd_stability = self._analyze_crowd_stability()
+            
+            self.last_crowd_count = person_count
+            
+            return {
+                "person_count": person_count,
+                "density": round(density, 2),
+                "avg_density": round(avg_density, 2),
+                "density_alert": density_alert,
+                "unusual_gathering": unusual_gathering,
+                "gathering_duration": round(gathering_duration, 1),
+                "crowd_stability": crowd_stability,
+                "risk_level": self._calculate_crowd_risk_level(density, person_count, unusual_gathering)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in crowd analysis: {str(e)}")
+            return {
+                "person_count": len(persons),
+                "density": 0,
+                "avg_density": 0,
+                "density_alert": False,
+                "unusual_gathering": False,
+                "gathering_duration": 0,
+                "crowd_stability": "unknown",
+                "risk_level": "low"
+            }
+    
+    def _analyze_crowd_stability(self) -> str:
+        """
+        Analyze how stable the crowd is (static vs dynamic)
+        
+        Returns:
+            String indicating crowd stability
+        """
+        if len(self.crowd_history) < 5:
+            return "insufficient_data"
+        
+        recent_counts = [record["count"] for record in self.crowd_history[-5:]]
+        count_variance = np.var(recent_counts) if len(recent_counts) > 1 else 0
+        
+        if count_variance < 2:
+            return "stable"  # Very little change in crowd size
+        elif count_variance < 10:
+            return "moderate"  # Some fluctuation
+        else:
+            return "dynamic"  # High fluctuation
+    
+    def _calculate_crowd_risk_level(self, density: float, count: int, unusual_gathering: bool) -> str:
+        """
+        Calculate overall risk level based on crowd metrics
+        
+        Args:
+            density: Current crowd density
+            count: Number of people
+            unusual_gathering: Whether there's an unusual gathering
+            
+        Returns:
+            Risk level as string
+        """
+        risk_score = 0
+        
+        # Density contribution
+        if density > self.max_normal_density:
+            risk_score += 3
+        elif density > self.max_normal_density * 0.7:
+            risk_score += 2
+        elif density > self.max_normal_density * 0.5:
+            risk_score += 1
+        
+        # Count contribution
+        if count > 20:
+            risk_score += 3
+        elif count > 15:
+            risk_score += 2
+        elif count > 10:
+            risk_score += 1
+        
+        # Gathering contribution
+        if unusual_gathering:
+            risk_score += 2
+        
+        # Determine risk level
+        if risk_score >= 6:
+            return "high"
+        elif risk_score >= 3:
+            return "medium"
+        else:
+            return "low"
+    
+    def get_crowd_statistics(self) -> Dict:
+        """
+        Get comprehensive crowd statistics
+        
+        Returns:
+            Dict containing crowd statistics
+        """
+        if not self.crowd_history:
+            return {
+                "total_observations": 0,
+                "max_crowd_size": 0,
+                "avg_crowd_size": 0,
+                "max_density": 0,
+                "avg_density": 0,
+                "current_crowd_size": 0
+            }
+        
+        counts = [record["count"] for record in self.crowd_history]
+        densities = [record["density"] for record in self.crowd_history]
+        
+        return {
+            "total_observations": len(self.crowd_history),
+            "max_crowd_size": max(counts),
+            "avg_crowd_size": round(sum(counts) / len(counts), 1),
+            "max_density": round(max(densities), 2),
+            "avg_density": round(sum(densities) / len(densities), 2),
+            "current_crowd_size": self.last_crowd_count
+        }
 
 # Global analyzer instance
 analyzer = VisionAnalyzer()
