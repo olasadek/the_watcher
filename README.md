@@ -25,6 +25,7 @@
 - **Interactive Markers**: Custom icons for cameras, security booths, and incidents
 - **Multi-Layer Visualization**: Toggle between cameras, booths, incidents, and routes
 - **Location-Based Services**: GPS coordinate editing and real-time map updates
+<img width="323" height="211" alt="image" src="https://github.com/user-attachments/assets/7d8d147a-ec4a-429b-ae8d-5ce4631ba50a" />
 
 ### 🎛️ Enhanced Dashboard System
 - **Five-Tab Navigation**: Security Monitoring, Crowd Analysis, Campus Map, Real Map (GPS), University Config
