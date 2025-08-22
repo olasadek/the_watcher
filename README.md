@@ -125,6 +125,10 @@
 - **API Documentation**: http://localhost:8001/docs (FastAPI auto-generated)
 - **Health Check**: http://localhost:8001/api/health
 
+### How to start
+cd backend -> python server.py
+cd frontend -> npm install -> npm start
+
 ### Service Status
 - **Frontend**: ✅ React development server running
 - **Backend**: ✅ FastAPI server with all endpoints active
