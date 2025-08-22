@@ -217,6 +217,340 @@ npm install
 npm start
 ```
 
+## 🛠️ Developer Setup & Prerequisites
+
+### 📋 System Requirements
+- **Python**: Version 3.8 or higher (Recommended: Python 3.9+)
+- **Node.js**: Version 16.0 or higher (Recommended: Node.js 18+ LTS)
+- **MongoDB**: Version 4.4 or higher (Local installation or MongoDB Atlas)
+- **Operating System**: Windows 10/11, macOS 10.15+, or Linux Ubuntu 18.04+
+- **RAM**: Minimum 4GB, Recommended 8GB+
+- **Storage**: At least 2GB free space
+
+### 🔧 Development Environment Setup
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/olasadek/the_watcher.git
+cd the_watcher
+```
+
+#### 2. Backend Setup (Python/FastAPI)
+```bash
+# Navigate to backend directory
+cd backend
+
+# Create virtual environment (recommended)
+python -m venv venv
+
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Alternative: Install dependencies individually
+pip install fastapi==0.104.1 uvicorn==0.24.0 motor==3.3.2 pymongo==4.6.0 python-multipart==0.0.6 opencv-python==4.8.1.78 numpy==1.24.3 Pillow==10.1.0 websockets==12.0
+```
+
+#### 3. Frontend Setup (React/Node.js)
+```bash
+# Navigate to frontend directory
+cd ../frontend
+
+# Install dependencies
+npm install
+
+# Alternative: Install dependencies individually
+npm install axios@^1.6.0 leaflet@^1.9.4 lucide-react@^0.292.0 react@^18.2.0 react-dom@^18.2.0 react-leaflet@^4.2.1 react-scripts@5.0.1 react-webcam@^7.1.1
+```
+
+#### 4. Database Setup (MongoDB)
+
+**Option A: Local MongoDB Installation**
+```bash
+# Install MongoDB Community Edition
+# Windows: Download from https://www.mongodb.com/try/download/community
+# macOS: brew install mongodb-community
+# Ubuntu: sudo apt install mongodb
+
+# Start MongoDB service
+# Windows: Start "MongoDB" service from Services
+# macOS: brew services start mongodb-community
+# Linux: sudo systemctl start mongod
+```
+
+**Option B: MongoDB Atlas (Cloud)**
+1. Create account at [MongoDB Atlas](https://www.mongodb.com/atlas)
+2. Create a free cluster
+3. Get connection string
+4. Update `.env` file with your Atlas connection string
+
+#### 5. Environment Configuration
+```bash
+# Backend environment variables
+cd backend
+
+# Create .env file (if not exists)
+echo "MONGO_URL=mongodb://localhost:27017" > .env
+
+# For MongoDB Atlas:
+# echo "MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/the_watcher" > .env
+```
+
+### 🚀 Running the Application
+
+#### Development Mode
+```bash
+# Terminal 1: Start Backend
+cd backend
+python -m uvicorn server:app --host 0.0.0.0 --port 8001 --reload
+
+# Terminal 2: Start Frontend
+cd frontend
+npm start
+```
+
+#### Production Mode
+```bash
+# Build frontend for production
+cd frontend
+npm run build
+
+# Start backend in production mode
+cd ../backend
+python -m uvicorn server:app --host 0.0.0.0 --port 8001
+```
+
+### 📦 Dependency Details
+
+#### Backend Dependencies (requirements.txt)
+```txt
+fastapi==0.104.1          # Modern Python web framework
+uvicorn==0.24.0           # ASGI server for FastAPI
+motor==3.3.2              # Async MongoDB driver
+pymongo==4.6.0            # MongoDB Python driver
+python-multipart==0.0.6   # Form data handling
+opencv-python==4.8.1.78   # Computer vision library
+numpy==1.24.3             # Scientific computing
+Pillow==10.1.0            # Image processing
+websockets==12.0          # WebSocket support
+```
+
+#### Frontend Dependencies (package.json)
+```json
+{
+  "axios": "^1.6.0",           // HTTP client for API calls
+  "leaflet": "^1.9.4",        // OpenStreetMap integration
+  "lucide-react": "^0.292.0",  // Icon library
+  "react": "^18.2.0",         // React framework
+  "react-dom": "^18.2.0",     // React DOM rendering
+  "react-leaflet": "^4.2.1",  // React Leaflet integration
+  "react-scripts": "5.0.1",   // React build tools
+  "react-webcam": "^7.1.1"    // Webcam integration
+}
+```
+
+### 🔐 Environment Variables
+
+#### Backend (.env)
+```bash
+# Database Configuration
+MONGO_URL=mongodb://localhost:27017
+# MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/the_watcher
+
+# Optional: Additional Configuration
+# DEBUG=True
+# LOG_LEVEL=INFO
+# CORS_ORIGINS=http://localhost:3000
+```
+
+### 🧪 Testing & Quality Assurance
+
+#### Running Tests
+```bash
+# Backend tests
+cd backend
+python -m pytest test_crowd_analysis.py -v
+
+# Frontend tests
+cd frontend
+npm test
+```
+
+#### Code Quality
+```bash
+# Backend linting (install flake8/black if needed)
+pip install flake8 black
+flake8 server.py vision_analyzer.py
+black --check server.py vision_analyzer.py
+
+# Frontend linting
+cd frontend
+npm run lint  # if ESLint is configured
+```
+
+### 🐛 Troubleshooting
+
+#### Common Issues
+
+**Backend Issues:**
+- **MongoDB Connection**: Ensure MongoDB is running on port 27017
+- **Python Version**: Verify Python 3.8+ with `python --version`
+- **OpenCV Issues**: Install system dependencies for OpenCV on Linux: `sudo apt-get install python3-opencv`
+- **Port 8001 in use**: Change port in uvicorn command: `--port 8002`
+
+**Frontend Issues:**
+- **Node Version**: Verify Node.js 16+ with `node --version`
+- **Port 3000 in use**: React will auto-suggest port 3001
+- **npm install fails**: Clear cache with `npm cache clean --force`
+- **Leaflet CSS issues**: Ensure Leaflet CSS is properly imported
+
+**Camera Access:**
+- **Webcam Permission**: Ensure browser has camera permissions
+- **HTTPS Required**: Some browsers require HTTPS for camera access
+- **Multiple Cameras**: Check camera device selection in browser settings
+
+### 📄 License & Contributing
+
+#### License
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+```
+MIT License
+
+Copyright (c) 2025 The Watcher Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+#### Contributing Guidelines
+
+**How to Contribute:**
+1. **Fork the repository** on GitHub
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and add tests if applicable
+4. **Commit your changes**: `git commit -m "Add amazing feature"`
+5. **Push to the branch**: `git push origin feature/amazing-feature`
+6. **Open a Pull Request** with detailed description
+
+**Contribution Standards:**
+- Follow existing code style and conventions
+- Add tests for new features
+- Update documentation for any API changes
+- Ensure all tests pass before submitting
+- Use clear, descriptive commit messages
+
+**Areas for Contribution:**
+- 🔍 New AI detection algorithms
+- 🗺️ Additional mapping features
+- 🎨 UI/UX improvements
+- 🧪 Test coverage expansion
+- 📚 Documentation improvements
+- 🌐 Internationalization support
+
+### 🏗️ CI/CD & Deployment
+
+#### Continuous Integration
+```yaml
+# .github/workflows/ci.yml (example)
+name: CI/CD Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - run: pip install -r backend/requirements.txt
+      - run: python -m pytest backend/test_crowd_analysis.py
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: cd frontend && npm install
+      - run: cd frontend && npm test
+```
+
+#### Deployment Options
+
+**Docker Deployment:**
+```dockerfile
+# Dockerfile example
+FROM python:3.9-slim
+WORKDIR /app
+COPY backend/requirements.txt .
+RUN pip install -r requirements.txt
+COPY backend/ .
+EXPOSE 8001
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001"]
+```
+
+**Cloud Deployment:**
+- **Backend**: Deploy to Railway, Render, or AWS Lambda
+- **Frontend**: Deploy to Vercel, Netlify, or AWS S3 + CloudFront
+- **Database**: MongoDB Atlas for managed database
+
+### 🔍 API Documentation
+
+#### Auto-Generated Documentation
+- **Swagger UI**: http://localhost:8001/docs
+- **ReDoc**: http://localhost:8001/redoc
+- **OpenAPI JSON**: http://localhost:8001/openapi.json
+
+#### Key API Endpoints
+```bash
+# Health check
+GET /api/health
+
+# Crowd analysis
+GET /api/crowd-stats
+POST /api/analyze-crowd
+
+# University configuration
+GET /api/university-config
+POST /api/configure-university
+
+# Camera management
+GET /api/cameras
+POST /api/cameras
+
+# Security booths
+GET /api/security-booths
+POST /api/security-booths
+
+# Incidents
+GET /api/incidents
+POST /api/incidents
+```
+
 ### Service Status
 - **Frontend**: ✅ React development server with five-tab navigation
 - **Backend**: ✅ FastAPI server with all endpoints active

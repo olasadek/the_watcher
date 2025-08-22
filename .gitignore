@@ -1,3 +1,12 @@
+# The Watcher - Comprehensive .gitignore
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 # Dependencies
 node_modules/
 npm-debug.log*
@@ -10,14 +19,120 @@ __pycache__/
 *$py.class
 *.so
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+.venv/
 
 # IDEs
 .vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+test-results/
+coverage/
+*.lcov
+
+# React Build
+build/
+.DS_Store
+
+# Logs
+logs
+*.log
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.mongodb
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.lnk
+
+# AI Model files
+*.pkl
+*.joblib
+*.h5
+*.pb
+*.tflite
+*.onnx
+models/
+weights/
+
+# Media files
+captures/
+test_images/
+temp_images/
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Security files
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Application specific
+uploads/
+downloads/
+cache/
+.local/
+local/
+dev/
 .idea/
 *.swp
 *.swo
