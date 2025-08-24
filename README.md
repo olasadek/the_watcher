@@ -5,7 +5,41 @@
 
 <img width="713" height="430" alt="the-watcher" src="https://github.com/user-attachments/assets/d5499c17-0b09-4f89-959f-28456051820d" />
 
-## 🌟 Latest Updates (August 22, 2025)
+## 🌟 Latest Updates (August 24, 2025)
+
+### 🧠 Dynamic Context-Aware Threshold Management
+- **Intelligent Agent System**: Static, leaderless multi-agent architecture with dynamic intelligence
+- **GPS-Crowd Analysis Communication**: GPS agents communicate location context to crowd analysis agents
+- **Country-Specific Camera Targeting**: Events affect only cameras in specified countries
+- **Cultural Context Awareness**: Automatic adaptation for collectivist vs individualist societies
+- **Religious Intelligence**: Multi-faith prayer time recognition with automatic threshold adjustments
+- **Population Density Adaptation**: Dynamic thresholds based on country population density
+- **Event-Based Threshold Modification**: Custom events with country and camera-specific targeting
+
+### 🕌 Multi-Religious Prayer Time Support
+- **Islamic Prayer Times**: Fajr, Dhuhr, Asr, Maghrib, Isha with higher crowd tolerance
+- **Christian Prayer Times**: Morning, Evening, and Sunday service accommodations
+- **Jewish Prayer Times**: Shacharit, Mincha, Maariv scheduling support
+- **Hindu Prayer Times**: Multiple daily worship period recognition
+- **Buddhist Prayer Times**: Meditation and chanting period awareness
+- **Automatic Cultural Adaptation**: System adapts to local religious majority
+
+### 🗺️ Country-Aware Event Management
+- **Geographic Event Targeting**: Events can target specific countries or regions
+- **Camera-Specific Threshold Updates**: Only cameras in target countries are affected
+- **Real-time Country Mapping**: Visual display of which cameras are affected by events
+- **Cultural Event Integration**: Custom events for local festivals, holidays, or emergencies
+- **Multi-National University Support**: Handle universities with campuses in multiple countries
+
+### 🎛️ Enhanced Dynamic Thresholds Dashboard
+- **Six-Tab Navigation**: Added "Dynamic Thresholds" tab with lightning icon
+- **Real-time Context Display**: Live view of current threshold adaptations
+- **Country Selection Interface**: Choose which countries are affected by new events
+- **Camera Impact Visualization**: See exactly which cameras are influenced by events
+- **Prayer Time Simulation**: Test threshold changes for different religious observances
+- **Event Management**: Add, remove, and monitor custom cultural or emergency events
+
+## 🌟 Previous Updates (August 22, 2025)
 
 ### 🎓 University Configuration System
 - **Multi-University Support**: Choose from predefined templates (AUB, MIT, Oxford) or create custom configurations
@@ -34,6 +68,15 @@
 - **Real-time Data Sync**: All components update automatically with configuration changes
 
 ## ✨ Core Features
+
+### 🧠 Dynamic Context-Aware Intelligence
+- **Multi-Agent Communication**: GPS agents share location context with crowd analysis agents
+- **Cultural Intelligence**: Automatic adaptation to collectivist vs individualist societies
+- **Religious Awareness**: Multi-faith prayer time recognition for all major religions
+- **Population Density Intelligence**: Dynamic thresholds based on country demographics
+- **Country-Specific Events**: Events target specific countries and their cameras only
+- **Real-time Threshold Adaptation**: Intelligent crowd tolerance based on current context
+- **Emergency Response**: Custom event creation for political situations or emergencies
 
 ### 🔍 Incident Detection
 - **Person Fallen**: Detects students who have fallen using aspect ratio analysis
@@ -84,17 +127,20 @@
 - **Database**: MongoDB for storing cameras, incidents, security data, and university configurations
 - **Real-time**: WebSocket connections for live updates
 - **AI Integration**: OpenCV and MediaPipe for computer vision and crowd analysis
+- **Dynamic Context Agent**: Intelligent threshold management with cultural and religious awareness
 - **GPS Services**: Haversine distance calculation and coordinate management
-- **API Endpoints**: 15+ RESTful endpoints including crowd analysis and university configuration
+- **Multi-Agent Architecture**: Static, leaderless agent system with dynamic intelligence
+- **API Endpoints**: 20+ RESTful endpoints including dynamic thresholds and country-specific management
 
 ### Frontend (React)
 - **Framework**: React 18 with functional components and hooks
 - **Styling**: Tailwind CSS with professional dark security theme
 - **Mapping**: Leaflet and react-leaflet for OpenStreetMap integration
 - **Real-time**: WebSocket integration for live updates across all tabs
+- **Dynamic Thresholds UI**: Country-specific event management interface
 - **Camera Access**: react-webcam for computer camera integration
 - **Icons**: Lucide React for comprehensive iconography
-- **Multi-Page Navigation**: Five-tab system with dynamic content loading
+- **Six-Tab Navigation**: Security, Crowd, Maps, GPS, Config, and Dynamic Thresholds
 
 ### AI/ML Pipeline
 - **Computer Vision**: OpenCV for motion detection and image analysis
@@ -108,17 +154,21 @@
 ## 🚀 Current System Status
 
 ### ✅ Fully Implemented Features
-1. **Professional Security Dashboard** - Five-tab navigation with dynamic content
+1. **Professional Security Dashboard** - Six-tab navigation with dynamic content
 2. **Real-time Incident Detection** - AI-powered computer vision analysis
 3. **Advanced Crowd Analysis** - Complete crowd monitoring and risk assessment
-4. **GPS-Based Real Mapping** - OpenStreetMap integration with precise coordinates
-5. **University Configuration System** - Multi-university support with templates
-6. **Audio Alert System** - Sound notifications for different severity levels
-7. **Dynamic Camera Management** - GPS-enabled camera network
-8. **Location-Aware Security Booths** - Personnel management with GPS coordinates
-9. **Incident Simulation** - Testing and demonstration capabilities
-10. **Live Statistics** - Real-time dashboard metrics across all systems
-11. **WebSocket Communication** - Real-time updates across all connected clients
+4. **Dynamic Context-Aware Thresholds** - Intelligent adaptation based on cultural and religious context
+5. **Country-Specific Event Management** - Events target specific countries and cameras
+6. **Multi-Religious Prayer Time Support** - Automatic threshold adjustment for all major religions
+7. **GPS-Based Real Mapping** - OpenStreetMap integration with precise coordinates
+8. **University Configuration System** - Multi-university support with templates
+9. **Audio Alert System** - Sound notifications for different severity levels
+10. **Dynamic Camera Management** - GPS-enabled camera network with country mapping
+11. **Location-Aware Security Booths** - Personnel management with GPS coordinates
+12. **Incident Simulation** - Testing and demonstration capabilities
+13. **Live Statistics** - Real-time dashboard metrics across all systems
+14. **WebSocket Communication** - Real-time updates across all connected clients
+15. **Cultural Intelligence** - Adaptation to population density and cultural contexts
 
 ### 🎓 Supported Universities
 - **American University of Beirut (AUB)** - Beirut, Lebanon (Default)
@@ -134,9 +184,12 @@
 - **Response Time**: Sub-second incident detection and alerting
 
 ### 🔧 Technical Status
-- **Backend API**: ✅ All 15+ endpoints tested and working
-- **Database**: ✅ MongoDB with university configuration support
-- **Frontend**: ✅ React application with five-tab navigation
+- **Backend API**: ✅ All 20+ endpoints tested and working
+- **Dynamic Context Agent**: ✅ Intelligent threshold management with cultural awareness
+- **Country-Specific Targeting**: ✅ Events affect only cameras in specified countries
+- **Multi-Religious Support**: ✅ Prayer time recognition for Islam, Christianity, Judaism, Hinduism, Buddhism
+- **Database**: ✅ MongoDB with university configuration and camera-country mapping
+- **Frontend**: ✅ React application with six-tab navigation including Dynamic Thresholds
 - **Real-time Features**: ✅ WebSocket connections across all components
 - **Computer Vision**: ✅ OpenCV with crowd analysis capabilities
 - **Mapping System**: ✅ OpenStreetMap integration with GPS coordinates
@@ -148,25 +201,38 @@
 ### For Security Personnel:
 1. **Monitor Dashboard**: View live camera feeds and comprehensive statistics
 2. **Crowd Monitoring**: Track crowd density and receive crowd-related alerts
-3. **Respond to Alerts**: Receive audio notifications for nearby incidents
-4. **Map Navigation**: Use GPS-based real map for precise location tracking
-5. **Manage Incidents**: Track and update incident status and assignments
+3. **Dynamic Thresholds**: Monitor cultural and religious context adaptations
+4. **Respond to Alerts**: Receive audio notifications for nearby incidents
+5. **Map Navigation**: Use GPS-based real map for precise location tracking
+6. **Manage Incidents**: Track and update incident status and assignments
 
 ### For University Administrators:
 1. **Configure University**: Choose university template or create custom setup
 2. **Setup Campus**: Configure camera and security booth locations with GPS
-3. **Customize Settings**: Adjust crowd thresholds and monitoring parameters
-4. **Monitor Performance**: Track system health across all monitoring systems
-5. **Test System**: Use simulation features to verify all functionalities
+3. **Dynamic Event Management**: Create country-specific events affecting camera thresholds
+4. **Cultural Configuration**: Set up religious and cultural context for automatic adaptation
+5. **Customize Settings**: Adjust crowd thresholds and monitoring parameters
+6. **Monitor Performance**: Track system health across all monitoring systems
+7. **Test System**: Use simulation features including prayer time testing
 
 ### For System Administrators:
 1. **University Setup**: Configure new universities with complete campus layouts
 2. **GPS Configuration**: Set precise coordinates for all campus infrastructure
-3. **Crowd Analysis**: Configure crowd monitoring parameters and thresholds
-4. **Performance Monitoring**: Track system health and response times
-5. **Multi-Campus Management**: Handle multiple university configurations
+3. **Multi-Country Management**: Handle universities with campuses in different countries
+4. **Cultural Intelligence Setup**: Configure religious and cultural contexts
+5. **Dynamic Threshold Management**: Set up intelligent threshold adaptation systems
+6. **Performance Monitoring**: Track system health and response times
+7. **Multi-Campus Management**: Handle multiple university configurations
 
 ## 🔑 Key Differentiators
+
+### Dynamic Context Intelligence
+- Multi-agent system with GPS-Crowd analysis communication
+- Country-specific event targeting affecting only specified cameras
+- Multi-religious prayer time recognition and adaptation
+- Cultural intelligence with collectivist vs individualist society awareness
+- Population density-based threshold adaptation by country
+- Static, leaderless architecture with dynamic intelligence layer
 
 ### Free AI Implementation
 - No expensive API costs (OpenAI, etc.)
@@ -197,6 +263,54 @@
 - Automatic routing to closest security booth
 - GPS coordinate-based incident mapping
 - Optimized response time through proximity routing
+
+## 🤖 Multi-Agent System Architecture
+
+### Agent Classification: **Static, Leaderless Multi-Agent System with Dynamic Intelligence**
+
+### 🏗️ Agent Types & Roles
+
+#### Static Agents (Fixed Position)
+- **Camera Agents**: Computer vision analysis at fixed campus locations
+- **Security Booth Agents**: Personnel coordination at fixed security stations
+- **GPS Location Agents**: Coordinate-based context providers for each fixed location
+
+#### Dynamic Intelligence Layer
+- **Dynamic Context Agent**: Central intelligence that processes location, cultural, and temporal context
+- **Vision Analysis Agent**: Adaptive threshold management based on context agent input
+- **Cultural Context Agent**: Provides religious and cultural awareness for threshold adaptation
+
+### 🔄 Agent Communication Patterns
+
+#### GPS → Crowd Analysis Communication Flow
+1. **GPS Agent** detects location context (country, population density, cultural factors)
+2. **Dynamic Context Agent** processes location data and determines cultural adaptations
+3. **Vision Analysis Agent** receives updated thresholds based on location context
+4. **Camera Agents** apply country-specific thresholds for crowd monitoring
+
+#### Event-Based Communication
+1. **Cultural/Religious Events** trigger context updates
+2. **Dynamic Context Agent** identifies affected countries and cameras
+3. **Camera Agents** in target countries receive adjusted thresholds
+4. **Security Booth Agents** receive notifications about threshold changes
+
+### 🌐 Multi-National Operation
+- **Country-Specific Mapping**: Each camera agent is mapped to its country
+- **Targeted Event Application**: Events only affect cameras in specified countries
+- **Cultural Intelligence**: Automatic adaptation to local cultural norms
+- **Religious Awareness**: Prayer time recognition for multiple faiths simultaneously
+
+### 🎯 Leaderless Coordination
+- **No Central Authority**: Each agent operates independently with shared context
+- **Distributed Decision Making**: Agents make decisions based on shared context data
+- **Fault Tolerance**: System continues operating if individual agents fail
+- **Scalable Architecture**: Easy addition of new camera or security booth agents
+
+### 🧠 Context-Aware Intelligence
+- **Population Density Factors**: Higher tolerance in densely populated areas (Japan) vs sparse regions (Canada)
+- **Cultural Adaptation**: Collectivist societies (Middle East, Asia) get higher crowd tolerance
+- **Religious Scheduling**: Automatic prayer time recognition across all major world religions
+- **Emergency Response**: Dynamic event creation for political situations or emergencies
 
 ## 🌐 Access Information
 

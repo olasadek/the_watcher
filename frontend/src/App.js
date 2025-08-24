@@ -5,6 +5,7 @@ import CrowdDashboard from './CrowdDashboard';
 import InteractiveMap from './InteractiveMap';
 import RealMap from './RealMap';
 import UniversityConfig from './UniversityConfig';
+import DynamicThresholds from './DynamicThresholds';
 import { 
   Camera, 
   Shield, 
@@ -18,7 +19,8 @@ import {
   BarChart3,
   Navigation,
   Globe,
-  School
+  School,
+  Zap
 } from 'lucide-react';
 import './App.css';
 
@@ -387,6 +389,19 @@ function App() {
                   University Config
                 </div>
               </button>
+              <button
+                onClick={() => setActiveTab('thresholds')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'thresholds'
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4" />
+                  Dynamic Thresholds
+                </div>
+              </button>
             </nav>
           </div>
         </div>
@@ -588,6 +603,11 @@ function App() {
         {/* University Configuration Tab */}
         {activeTab === 'config' && (
           <UniversityConfig />
+        )}
+
+        {/* Dynamic Thresholds Tab */}
+        {activeTab === 'thresholds' && (
+          <DynamicThresholds />
         )}
       </div>
     </div>

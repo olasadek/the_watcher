@@ -16,6 +16,14 @@ from pydantic import BaseModel
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Import dynamic context agent
+try:
+    from dynamic_context_agent import dynamic_context_agent, EventContext
+except ImportError:
+    logger.warning("Dynamic context agent not available")
+    dynamic_context_agent = None
+    EventContext = None
+
 # Initialize FastAPI app
 app = FastAPI(title="The Watcher - University Monitoring System")
 
@@ -718,12 +726,54 @@ async def configure_university(config: dict):
         
         logger.info(f"Successfully configured {config.get('university')} with {len(cameras)} cameras and {len(booths)} booths")
         
+        # Auto-initialize dynamic context for adaptive thresholds
+        context_initialized = False
+        if dynamic_context_agent:
+            try:
+                # Store university config for context agent
+                full_config = {
+                    "type": "current_config",
+                    "university": config.get("university"),
+                    "country": config.get("location", {}).get("country", "Unknown"),
+                    "city": config.get("location", {}).get("city", "Unknown"),
+                    "center": config.get("location", {}).get("center", {"lat": 0, "lng": 0}),
+                    "cameras": cameras,
+                    "booths": booths,
+                    "configured_at": datetime.utcnow()
+                }
+                
+                await db.university_config.replace_one(
+                    {"type": "current_config"},
+                    full_config,
+                    upsert=True
+                )
+                
+                # Initialize location context for dynamic thresholds
+                await dynamic_context_agent.initialize_location_context(full_config)
+                
+                # Register cameras with their country information
+                await dynamic_context_agent.register_cameras_by_country(full_config)
+                
+                await dynamic_context_agent.schedule_recurring_events()
+                
+                # Update analyzer thresholds
+                from vision_analyzer import analyzer
+                await analyzer.update_dynamic_thresholds()
+                
+                context_initialized = True
+                logger.info("Dynamic context initialized successfully")
+                
+            except Exception as context_error:
+                logger.warning(f"Failed to initialize dynamic context: {context_error}")
+        
         return {
             "message": f"University '{config.get('university')}' configured successfully!",
             "university": config.get("university"),
             "location": config.get("location"),
             "cameras_count": len(cameras),
-            "booths_count": len(booths)
+            "booths_count": len(booths),
+            "dynamic_context_initialized": context_initialized,
+            "adaptive_thresholds": "enabled" if context_initialized else "disabled"
         }
         
     except Exception as e:
@@ -743,7 +793,7 @@ async def get_university_config():
             }
         
         # Clean the config for JSON serialization
-        config = _clean_dict_for_json(config)
+        config = manager._clean_dict_for_json(config)
         return config
         
     except Exception as e:
@@ -1017,6 +1067,280 @@ async def create_bulk_security_booths():
     except Exception as e:
         logger.error(f"Error creating bulk security booths: {str(e)}")
         return {"error": str(e), "message": "Failed to create sample security booths"}
+
+# ================== DYNAMIC CONTEXT & ADAPTIVE THRESHOLD API ENDPOINTS ==================
+
+@app.get("/api/dynamic-thresholds")
+async def get_dynamic_thresholds():
+    """
+    Get current dynamic crowd thresholds based on location, prayer times, and events
+    """
+    try:
+        from vision_analyzer import analyzer
+        
+        # Update thresholds with current context
+        threshold_update = await analyzer.update_dynamic_thresholds()
+        
+        # Get current threshold info
+        threshold_info = analyzer.get_current_threshold_info()
+        
+        return {
+            "dynamic_thresholds": threshold_info,
+            "last_update": threshold_update,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting dynamic thresholds: {str(e)}")
+        return {"error": str(e), "message": "Failed to get dynamic thresholds"}
+
+@app.post("/api/initialize-location-context")
+async def initialize_location_context():
+    """
+    Initialize location context for dynamic threshold calculation
+    """
+    try:
+        if dynamic_context_agent is None:
+            return {"error": "Dynamic context agent not available"}
+        
+        # Get current university configuration
+        university_config = await db.university_config.find_one({"type": "current_config"})
+        
+        if not university_config:
+            return {"error": "No university configuration found. Please configure university first."}
+        
+        # Initialize location context
+        await dynamic_context_agent.initialize_location_context(university_config)
+        
+        # Register cameras with their country information
+        await dynamic_context_agent.register_cameras_by_country(university_config)
+        
+        # Schedule recurring events (like prayer times)
+        await dynamic_context_agent.schedule_recurring_events()
+        
+        # Update analyzer thresholds
+        from vision_analyzer import analyzer
+        threshold_update = await analyzer.update_dynamic_thresholds()
+        
+        return {
+            "message": "Location context initialized successfully",
+            "location_context": {
+                "country": university_config.get('country', 'Unknown'),
+                "city": university_config.get('city', 'Unknown'),
+                "coordinates": university_config.get('center', {})
+            },
+            "threshold_update": threshold_update
+        }
+        
+    except Exception as e:
+        logger.error(f"Error initializing location context: {str(e)}")
+        return {"error": str(e), "message": "Failed to initialize location context"}
+
+@app.post("/api/add-event")
+async def add_dynamic_event(event_data: Dict):
+    """
+    Add a new event that affects crowd thresholds for specific countries
+    Expected format:
+    {
+        "event_type": "religious_festival",
+        "start_time": "2025-08-24T14:00:00",
+        "end_time": "2025-08-24T18:00:00",
+        "description": "Eid Al-Fitr Celebration",
+        "crowd_multiplier": 3.0,
+        "target_countries": ["lebanon", "uae"]  // optional, defaults to current location
+    }
+    """
+    try:
+        if dynamic_context_agent is None:
+            return {"error": "Dynamic context agent not available"}
+        
+        if EventContext is None:
+            return {"error": "EventContext not available"}
+        
+        # Parse datetime strings
+        start_time = datetime.fromisoformat(event_data['start_time'].replace('Z', '+00:00'))
+        end_time = datetime.fromisoformat(event_data['end_time'].replace('Z', '+00:00'))
+        
+        # Get target countries (optional)
+        target_countries = event_data.get('target_countries', [])
+        
+        # Find affected cameras for target countries
+        affected_cameras = []
+        if target_countries:
+            for country in target_countries:
+                country_cameras = dynamic_context_agent.country_cameras_map.get(country, [])
+                affected_cameras.extend(country_cameras)
+        
+        # Create event context
+        event = EventContext(
+            event_type=event_data['event_type'],
+            start_time=start_time,
+            end_time=end_time,
+            crowd_multiplier=float(event_data['crowd_multiplier']),
+            description=event_data['description'],
+            target_countries=target_countries,
+            affected_cameras=affected_cameras
+        )
+        
+        # Add event to context agent
+        await dynamic_context_agent.add_event(event)
+        
+        # Update thresholds immediately
+        from vision_analyzer import analyzer
+        threshold_update = await analyzer.update_dynamic_thresholds()
+        
+        return {
+            "message": "Event added successfully",
+            "affected_countries": target_countries,
+            "affected_cameras": affected_cameras,
+            "event": {
+                "type": event.event_type,
+                "description": event.description,
+                "start_time": event.start_time.isoformat(),
+                "end_time": event.end_time.isoformat(),
+                "multiplier": event.crowd_multiplier
+            },
+            "threshold_update": threshold_update
+        }
+        
+    except Exception as e:
+        logger.error(f"Error adding event: {str(e)}")
+        return {"error": str(e), "message": "Failed to add event"}
+
+@app.get("/api/camera-thresholds/{camera_id}")
+async def get_camera_specific_thresholds(camera_id: str):
+    """
+    Get dynamic thresholds specific to a camera based on its country and active events
+    """
+    try:
+        if dynamic_context_agent is None:
+            return {"error": "Dynamic context agent not available"}
+        
+        # Get camera-specific thresholds
+        thresholds = await dynamic_context_agent.get_camera_specific_thresholds(camera_id)
+        
+        return {
+            "success": True,
+            "camera_thresholds": thresholds
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting camera thresholds for {camera_id}: {str(e)}")
+        return {"error": str(e), "message": "Failed to get camera thresholds"}
+
+@app.get("/api/cameras-by-country")
+async def get_cameras_by_country():
+    """
+    Get mapping of cameras organized by country
+    """
+    try:
+        if dynamic_context_agent is None:
+            return {"error": "Dynamic context agent not available"}
+        
+        return {
+            "success": True,
+            "camera_country_map": dynamic_context_agent.camera_country_map,
+            "country_cameras_map": dynamic_context_agent.country_cameras_map
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting cameras by country: {str(e)}")
+        return {"error": str(e), "message": "Failed to get cameras by country"}
+
+@app.get("/api/context-status")
+async def get_context_status():
+    """
+    Get current context status including location, active events, and prayer times
+    """
+    try:
+        if dynamic_context_agent is None:
+            return {"error": "Dynamic context agent not available"}
+        
+        current_time = datetime.now()
+        
+        # Get dynamic thresholds (includes context info)
+        context_result = await dynamic_context_agent.get_dynamic_thresholds(current_time)
+        
+        return {
+            "context_status": context_result,
+            "timestamp": current_time.isoformat(),
+            "agent_available": True
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting context status: {str(e)}")
+        return {"error": str(e), "message": "Failed to get context status"}
+
+@app.post("/api/simulate-prayer-time")
+async def simulate_prayer_time():
+    """
+    Simulate prayer time for testing - adds a 30-minute prayer event starting now
+    """
+    try:
+        if dynamic_context_agent is None:
+            return {"error": "Dynamic context agent not available"}
+        
+        if EventContext is None:
+            return {"error": "EventContext not available"}
+        
+        current_time = datetime.now()
+        
+        # Create a test prayer event
+        prayer_event = EventContext(
+            event_type='prayer_time',
+            start_time=current_time,
+            end_time=current_time + timedelta(minutes=30),
+            crowd_multiplier=2.0,
+            description='Test Prayer Time (30 minutes)'
+        )
+        
+        await dynamic_context_agent.add_event(prayer_event)
+        
+        # Update thresholds
+        from vision_analyzer import analyzer
+        threshold_update = await analyzer.update_dynamic_thresholds()
+        
+        return {
+            "message": "Prayer time simulation started",
+            "event": {
+                "type": prayer_event.event_type,
+                "description": prayer_event.description,
+                "start_time": prayer_event.start_time.isoformat(),
+                "end_time": prayer_event.end_time.isoformat(),
+                "multiplier": prayer_event.crowd_multiplier
+            },
+            "threshold_update": threshold_update
+        }
+        
+    except Exception as e:
+        logger.error(f"Error simulating prayer time: {str(e)}")
+        return {"error": str(e), "message": "Failed to simulate prayer time"}
+
+@app.delete("/api/remove-events/{event_type}")
+async def remove_events(event_type: str):
+    """
+    Remove all events of a specific type
+    """
+    try:
+        if dynamic_context_agent is None:
+            return {"error": "Dynamic context agent not available"}
+        
+        await dynamic_context_agent.remove_event(event_type)
+        
+        # Update thresholds after removing events
+        from vision_analyzer import analyzer
+        threshold_update = await analyzer.update_dynamic_thresholds()
+        
+        return {
+            "message": f"Removed all events of type: {event_type}",
+            "threshold_update": threshold_update
+        }
+        
+    except Exception as e:
+        logger.error(f"Error removing events: {str(e)}")
+        return {"error": str(e), "message": "Failed to remove events"}
+
+# ================== END DYNAMIC CONTEXT API ENDPOINTS ==================
 
 if __name__ == "__main__":
     import uvicorn

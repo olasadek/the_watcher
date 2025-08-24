@@ -4,10 +4,18 @@ from datetime import datetime
 import json
 import logging
 from typing import Dict, List, Tuple, Optional
+import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Import the dynamic context agent
+try:
+    from dynamic_context_agent import dynamic_context_agent
+except ImportError:
+    logger.warning("Dynamic context agent not available")
+    dynamic_context_agent = None
 
 class VisionAnalyzer:
     """
@@ -38,16 +46,24 @@ class VisionAnalyzer:
         self.prev_frame = None
         self.frame_count = 0
         
-        # Detection thresholds
+        # Detection thresholds (now dynamic - will be updated by context agent)
         self.motion_threshold = 5000
         self.person_confidence_threshold = 0.5
         self.fall_aspect_ratio_threshold = 1.5
         
-        # Crowd analysis parameters
-        self.crowd_density_threshold = 5  # persons per unit area
-        self.gathering_size_threshold = 8  # minimum persons for unusual gathering
-        self.gathering_duration_threshold = 30  # seconds
-        self.max_normal_density = 10  # maximum normal crowd density
+        # Base crowd analysis parameters (will be adjusted dynamically)
+        self.base_crowd_density_threshold = 5  # persons per unit area
+        self.base_gathering_size_threshold = 8  # minimum persons for unusual gathering
+        self.base_max_normal_density = 10  # maximum normal crowd density
+        
+        # Dynamic thresholds (updated by context agent)
+        self.crowd_density_threshold = self.base_crowd_density_threshold
+        self.gathering_size_threshold = self.base_gathering_size_threshold
+        self.max_normal_density = self.base_max_normal_density
+        
+        # Context tracking
+        self.last_context_update = None
+        self.context_reasoning = []
         
         # Crowd tracking
         self.crowd_history = []
@@ -495,6 +511,177 @@ class VisionAnalyzer:
             "max_density": round(max(densities), 2),
             "avg_density": round(sum(densities) / len(densities), 2),
             "current_crowd_size": self.last_crowd_count
+        }
+    
+    async def update_dynamic_thresholds(self, current_time: Optional[datetime] = None) -> Dict:
+        """
+        Update crowd thresholds based on dynamic context (prayer times, events, location)
+        This is where GPS agent communicates with crowd analysis agent for adaptive thresholds
+        """
+        if dynamic_context_agent is None:
+            logger.warning("Dynamic context agent not available, using static thresholds")
+            return {
+                "status": "static",
+                "thresholds": {
+                    "crowd_density_threshold": self.crowd_density_threshold,
+                    "gathering_size_threshold": self.gathering_size_threshold,
+                    "max_normal_density": self.max_normal_density
+                }
+            }
+        
+        try:
+            if current_time is None:
+                current_time = datetime.now()
+            
+            # Get dynamic thresholds from context agent
+            context_result = await dynamic_context_agent.get_dynamic_thresholds(current_time)
+            
+            # Update our thresholds
+            new_thresholds = context_result['thresholds']
+            
+            self.crowd_density_threshold = new_thresholds['crowd_density']
+            self.gathering_size_threshold = new_thresholds['gathering_size']
+            self.max_normal_density = new_thresholds['max_normal_density']
+            
+            # Store context reasoning for logging
+            self.context_reasoning = context_result['adjustments']
+            self.last_context_update = current_time
+            
+            logger.info(f"Dynamic thresholds updated:")
+            logger.info(f"  Crowd density: {self.base_crowd_density_threshold} → {self.crowd_density_threshold}")
+            logger.info(f"  Gathering size: {self.base_gathering_size_threshold} → {self.gathering_size_threshold}")
+            logger.info(f"  Max normal density: {self.base_max_normal_density} → {self.max_normal_density}")
+            logger.info(f"  Reasoning: {', '.join(self.context_reasoning)}")
+            
+            if context_result['is_prayer_time']:
+                logger.info(f"🕌 Prayer time detected: {context_result['prayer_info']}")
+            
+            return {
+                "status": "updated",
+                "context_result": context_result,
+                "previous_thresholds": {
+                    "crowd_density_threshold": self.base_crowd_density_threshold,
+                    "gathering_size_threshold": self.base_gathering_size_threshold,
+                    "max_normal_density": self.base_max_normal_density
+                },
+                "new_thresholds": {
+                    "crowd_density_threshold": self.crowd_density_threshold,
+                    "gathering_size_threshold": self.gathering_size_threshold,
+                    "max_normal_density": self.max_normal_density
+                },
+                "reasoning": self.context_reasoning
+            }
+            
+        except Exception as e:
+            logger.error(f"Error updating dynamic thresholds: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "thresholds": {
+                    "crowd_density_threshold": self.crowd_density_threshold,
+                    "gathering_size_threshold": self.gathering_size_threshold,
+                    "max_normal_density": self.max_normal_density
+                }
+            }
+    
+    async def update_camera_specific_thresholds(self, camera_id: str, current_time: Optional[datetime] = None) -> Dict:
+        """
+        Update crowd thresholds specific to a camera based on its country and active events
+        This enables country-specific threshold adjustments for events
+        """
+        if dynamic_context_agent is None:
+            logger.warning("Dynamic context agent not available, using static thresholds")
+            return {
+                "status": "static",
+                "camera_id": camera_id,
+                "thresholds": {
+                    "crowd_density_threshold": self.crowd_density_threshold,
+                    "gathering_size_threshold": self.gathering_size_threshold,
+                    "max_normal_density": self.max_normal_density
+                }
+            }
+        
+        try:
+            if current_time is None:
+                current_time = datetime.now()
+            
+            # Get camera-specific dynamic thresholds from context agent
+            context_result = await dynamic_context_agent.get_camera_specific_thresholds(camera_id, current_time)
+            
+            # Store original thresholds
+            original_thresholds = {
+                "crowd_density_threshold": self.crowd_density_threshold,
+                "gathering_size_threshold": self.gathering_size_threshold,
+                "max_normal_density": self.max_normal_density
+            }
+            
+            # Update our thresholds for this camera
+            new_thresholds = context_result['thresholds']
+            
+            self.crowd_density_threshold = new_thresholds['crowd_density']
+            self.gathering_size_threshold = new_thresholds['gathering_size']
+            self.max_normal_density = new_thresholds['max_normal_density']
+            
+            # Store context reasoning for logging
+            self.context_reasoning = context_result['adjustments']
+            self.last_context_update = current_time
+            
+            logger.info(f"Camera-specific thresholds updated for {camera_id} (Country: {context_result['camera_country']}):")
+            logger.info(f"  Crowd density: {self.base_crowd_density_threshold} → {self.crowd_density_threshold}")
+            logger.info(f"  Gathering size: {self.base_gathering_size_threshold} → {self.gathering_size_threshold}")
+            logger.info(f"  Max normal density: {self.base_max_normal_density} → {self.max_normal_density}")
+            logger.info(f"  Reasoning: {', '.join(self.context_reasoning)}")
+            
+            if context_result['is_prayer_time']:
+                logger.info(f"🕌 Prayer time detected: {context_result['prayer_info']}")
+            
+            if context_result['camera_specific_events']:
+                logger.info(f"📅 Camera-specific events: {', '.join(context_result['camera_specific_events'])}")
+            
+            return {
+                "status": "updated",
+                "camera_id": camera_id,
+                "camera_country": context_result['camera_country'],
+                "context_result": context_result,
+                "original_thresholds": original_thresholds,
+                "new_thresholds": {
+                    "crowd_density_threshold": self.crowd_density_threshold,
+                    "gathering_size_threshold": self.gathering_size_threshold,
+                    "max_normal_density": self.max_normal_density
+                },
+                "reasoning": self.context_reasoning,
+                "camera_specific_events": context_result['camera_specific_events']
+            }
+            
+        except Exception as e:
+            logger.error(f"Error updating camera-specific thresholds for {camera_id}: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "camera_id": camera_id,
+                "thresholds": {
+                    "crowd_density_threshold": self.crowd_density_threshold,
+                    "gathering_size_threshold": self.gathering_size_threshold,
+                    "max_normal_density": self.max_normal_density
+                }
+            }
+    
+    def get_current_threshold_info(self) -> Dict:
+        """Get current threshold information with context"""
+        return {
+            "current_thresholds": {
+                "crowd_density_threshold": self.crowd_density_threshold,
+                "gathering_size_threshold": self.gathering_size_threshold,
+                "max_normal_density": self.max_normal_density
+            },
+            "base_thresholds": {
+                "crowd_density_threshold": self.base_crowd_density_threshold,
+                "gathering_size_threshold": self.base_gathering_size_threshold,
+                "max_normal_density": self.base_max_normal_density
+            },
+            "last_update": self.last_context_update.isoformat() if self.last_context_update else None,
+            "context_reasoning": self.context_reasoning,
+            "is_dynamic": dynamic_context_agent is not None
         }
 
 # Global analyzer instance
